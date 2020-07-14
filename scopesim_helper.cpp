@@ -31,28 +31,28 @@
 
 Angle::Angle(double value, ANGLE_UNITS type)
 {
-    switch(type)
+    switch (type)
     {
-        case DEGREES:
-            angle = range(value);
-            break;
-        case HOURS:
-            angle = range(value * 15.0);
-            break;
-        case RADIANS:
-            angle = range(value * 180.0 / M_PI);
-            break;
+    case DEGREES:
+        angle = range(value);
+        break;
+    case HOURS:
+        angle = range(value * 15.0);
+        break;
+    case RADIANS:
+        angle = range(value * 180.0 / M_PI);
+        break;
     }
 }
 
 double Angle::radians() { return this->angle * M_PI / 180.0; }
 
-bool Angle::operator== (const Angle& a)
+bool Angle::operator==(const Angle &a)
 {
     return std::abs(difference(a)) < 10E-6;
 }
 
-bool Angle::operator!= (const Angle& a)
+bool Angle::operator!=(const Angle &a)
 {
     return std::abs(difference(a)) >= 10E-6;
 }
@@ -91,18 +91,18 @@ void Axis::TrackRate(AXIS_TRACK_RATE rate)
     trackingRate = rate;
     switch (trackingRate)
     {
-        case AXIS_TRACK_RATE::OFF:
-            TrackingRateDegSec = 0;
-            break;
-        case AXIS_TRACK_RATE::SIDEREAL:
-            TrackingRateDegSec = siderealRate;
-            break;
-        case AXIS_TRACK_RATE::SOLAR:
-            TrackingRateDegSec = solarRate;
-            break;
-        case AXIS_TRACK_RATE::LUNAR:
-            TrackingRateDegSec = lunarRate;
-            break;
+    case AXIS_TRACK_RATE::OFF:
+        TrackingRateDegSec = 0;
+        break;
+    case AXIS_TRACK_RATE::SIDEREAL:
+        TrackingRateDegSec = siderealRate;
+        break;
+    case AXIS_TRACK_RATE::SOLAR:
+        TrackingRateDegSec = solarRate;
+        break;
+    case AXIS_TRACK_RATE::LUNAR:
+        TrackingRateDegSec = lunarRate;
+        break;
     }
     LOGF_EXTRA1("%s: TrackRate %i, trackingRateDegSec %f arcsec", axisName, trackingRate, TrackingRateDegSec.Degrees() * 3600);
 }
@@ -121,9 +121,12 @@ void Axis::StartGuide(double rate, uint32_t durationMs)
     LOGF_DEBUG("%s StartGuide rate %f=>%f, dur %d =>%f", axisName, rate, guideRateDegSec.Degrees(), durationMs, guideDuration);
 }
 
-void Axis::update()         // called about once a second to update the position and mode
+void Axis::update() // called about once a second to update the position and mode
 {
-    struct timeval currentTime { 0, 0 };
+    struct timeval currentTime
+    {
+        0, 0
+    };
 
     /* update elapsed time since last poll, don't presume exactly POLLMS */
     gettimeofday(&currentTime, nullptr);
@@ -132,7 +135,7 @@ void Axis::update()         // called about once a second to update the position
         lastTime = currentTime;
 
     // Time diff in seconds
-    double interval  = currentTime.tv_sec - lastTime.tv_sec + (currentTime.tv_usec - lastTime.tv_usec) / 1e6;
+    double interval = currentTime.tv_sec - lastTime.tv_sec + (currentTime.tv_usec - lastTime.tv_usec) / 1e6;
     lastTime = currentTime;
     double change = 0;
 
@@ -158,7 +161,7 @@ void Axis::update()         // called about once a second to update the position
         double slowChange = fastChange / 5;
         //LOGF_DEBUG("slew: trc %f prc %f, delta %f", trc.Degrees(), prc.Degrees(), delta);
         // apply the change to the relative position
-        const char * b;
+        const char *b;
         if (delta < -fastChange)
         {
             change = -fastChange;
@@ -223,27 +226,27 @@ Angle Alignment::lst()
     return Angle(get_local_sidereal_time(longitude.Degrees360()) * 15.0);
 }
 
-void Alignment::mountToApparentHaDec(Angle primary, Angle secondary, Angle * apparentHa, Angle* apparentDec)
+void Alignment::mountToApparentHaDec(Angle primary, Angle secondary, Angle *apparentHa, Angle *apparentDec)
 {
     Angle prio, seco;
     // get instrument place
     switch (mountType)
     {
-        case MOUNT_TYPE::ALTAZ:
-        case MOUNT_TYPE::EQ_FORK:
-            seco = (latitude >= 0) ? secondary : -secondary;
-            prio = primary;
-            break;
-        case MOUNT_TYPE::EQ_GEM:
-            seco = (latitude >= 0) ? secondary : -secondary;
-            prio = primary;
-            if (seco > 90 || seco < -90)
-            {
-                // pointing state inverted
-                seco = Angle(180.0 - seco.Degrees());
-                prio += 180.0;
-            }
-            break;
+    case MOUNT_TYPE::ALTAZ:
+    case MOUNT_TYPE::EQ_FORK:
+        seco = (latitude >= 0) ? secondary : -secondary;
+        prio = primary;
+        break;
+    case MOUNT_TYPE::EQ_GEM:
+        seco = (latitude >= 0) ? secondary : -secondary;
+        prio = primary;
+        if (seco > 90 || seco < -90)
+        {
+            // pointing state inverted
+            seco = Angle(180.0 - seco.Degrees());
+            prio += 180.0;
+        }
+        break;
     }
     // instrument to observed, ignore apparent
     instrumentToObserved(prio, seco, apparentHa, apparentDec);
@@ -258,7 +261,7 @@ void Alignment::mountToApparentHaDec(Angle primary, Angle secondary, Angle * app
     }
 }
 
-void Alignment::mountToApparentRaDec(Angle primary, Angle secondary, Angle * apparentRa, Angle* apparentDec)
+void Alignment::mountToApparentRaDec(Angle primary, Angle secondary, Angle *apparentRa, Angle *apparentDec)
 {
     Angle ha;
     mountToApparentHaDec(primary, secondary, &ha, apparentDec);
@@ -266,7 +269,7 @@ void Alignment::mountToApparentRaDec(Angle primary, Angle secondary, Angle * app
     LOGF_EXTRA1("mountToApparentRaDec %f, %f to ha %f, ra %f, %f", primary.Degrees(), secondary.Degrees(), ha.Degrees(), apparentRa->Degrees(), apparentDec->Degrees());
 }
 
-void Alignment::apparentHaDecToMount(Angle apparentHa, Angle apparentDec, Angle* primary, Angle* secondary)
+void Alignment::apparentHaDecToMount(Angle apparentHa, Angle apparentDec, Angle *primary, Angle *secondary)
 {
     // convert to Alt Azm first
     if (mountType == MOUNT_TYPE::ALTAZ)
@@ -278,7 +281,7 @@ void Alignment::apparentHaDecToMount(Angle apparentHa, Angle apparentDec, Angle*
         // this all leaves me wondering if the GEM corrections should be done before the mount model
         *primary = altAzm.primary();
         *secondary = altAzm.secondary();
-        LOGF_EXTRA1("a2M haDec %f, %f Azm Alt %f, %f", apparentHa.Degrees(), apparentDec.Degrees(), primary->Degrees(), secondary->Degrees() );
+        LOGF_EXTRA1("a2M haDec %f, %f Azm Alt %f, %f", apparentHa.Degrees(), apparentDec.Degrees(), primary->Degrees(), secondary->Degrees());
     }
     // ignore diurnal abberations and refractions to get observed ha, dec
     // apply telescope pointing to get instrument
@@ -287,29 +290,29 @@ void Alignment::apparentHaDecToMount(Angle apparentHa, Angle apparentDec, Angle*
 
     switch (mountType)
     {
-        case MOUNT_TYPE::ALTAZ:
-            break;
-        case MOUNT_TYPE::EQ_FORK:
-            *secondary = (latitude >= 0) ? instrumentDec : -instrumentDec;
-            *primary = instrumentHa;
-            break;
-        case MOUNT_TYPE::EQ_GEM:
-            *secondary = instrumentDec;
-            *primary = instrumentHa;
-            // use the instrument Ha to select the pointing state
-            if (instrumentHa < flipHourAngle)
-            {
-                // pointing state inverted
-                *primary += Angle(180);
-                *secondary = Angle(180) - instrumentDec;
-            }
-            if (latitude < 0)
-                *secondary = -*secondary;
-            break;
+    case MOUNT_TYPE::ALTAZ:
+        break;
+    case MOUNT_TYPE::EQ_FORK:
+        *secondary = (latitude >= 0) ? instrumentDec : -instrumentDec;
+        *primary = instrumentHa;
+        break;
+    case MOUNT_TYPE::EQ_GEM:
+        *secondary = instrumentDec;
+        *primary = instrumentHa;
+        // use the instrument Ha to select the pointing state
+        if (instrumentHa < flipHourAngle)
+        {
+            // pointing state inverted
+            *primary += Angle(180);
+            *secondary = Angle(180) - instrumentDec;
+        }
+        if (latitude < 0)
+            *secondary = -*secondary;
+        break;
     }
 }
 
-void Alignment::apparentRaDecToMount(Angle apparentRa, Angle apparentDec, Angle* primary, Angle* secondary)
+void Alignment::apparentRaDecToMount(Angle apparentRa, Angle apparentDec, Angle *primary, Angle *secondary)
 {
     Angle ha = lst() - apparentRa;
     apparentHaDecToMount(ha, apparentDec, primary, secondary);
@@ -318,7 +321,7 @@ void Alignment::apparentRaDecToMount(Angle apparentRa, Angle apparentDec, Angle*
 
 #define NEW
 
-void Alignment::instrumentToObserved(Angle instrumentHa, Angle instrumentDec, Angle * observedHa, Angle* observedDec)
+void Alignment::instrumentToObserved(Angle instrumentHa, Angle instrumentDec, Angle *observedHa, Angle *observedDec)
 {
     static Angle maxDec = Angle(89);
 
@@ -346,7 +349,7 @@ void Alignment::instrumentToObserved(Angle instrumentHa, Angle instrumentDec, An
     *observedDec = vMe.secondary();
 }
 
-void Alignment::observedToInstrument(Angle observedHa, Angle observedDec, Angle * instrumentHa, Angle *instrumentDec)
+void Alignment::observedToInstrument(Angle observedHa, Angle observedDec, Angle *instrumentHa, Angle *instrumentDec)
 {
 #ifdef NEW
 
@@ -377,38 +380,37 @@ void Alignment::observedToInstrument(Angle observedHa, Angle observedDec, Angle 
 
 #else
 
-
     Angle correctionHa, correctionDec;
     correction(observedHa, observedDec, &correctionHa, &correctionDec);
     // subtract the correction to get a first pass at the instrument
     *instrumentHa = observedHa - correctionHa;
     *instrumentDec = observedDec - correctionDec;
 
-    static const Angle minDelta(1.0/3600.0);     // 1.0 arc seconds
+    static const Angle minDelta(1.0 / 3600.0); // 1.0 arc seconds
     Angle dHa(180);
     Angle dDec(180);
     int num = 0;
-    while ( num < 10)
+    while (num < 10)
     {
-            // use the previously calculated instrument to get a new position
-            Angle newHa, newDec;
-            correction(*instrumentHa, *instrumentDec, &correctionHa, &correctionDec);
-            newHa = *instrumentHa + correctionHa;
-            newDec = *instrumentDec + correctionDec;
-            // get the deltas
-            dHa = observedHa - newHa;
-            dDec = observedDec - newDec;
-//            LOGF_DEBUG("observedToInstrument %i: observed %f, %f, new %f, %f, delta %f, %f", num,
-//                       observedHa.Degrees(), observedDec.Degrees(),
-//                       newHa.Degrees(), newDec.Degrees(), dHa.Degrees(), dDec.Degrees());
-            if (Angle(fabs(dHa.Degrees())) < minDelta && Angle(fabs(dDec.Degrees())) < minDelta)
-            {
-                return;
-            }
-            // apply the delta
-            *instrumentHa += dHa;
-            *instrumentDec += dDec;
-            num++;
+        // use the previously calculated instrument to get a new position
+        Angle newHa, newDec;
+        correction(*instrumentHa, *instrumentDec, &correctionHa, &correctionDec);
+        newHa = *instrumentHa + correctionHa;
+        newDec = *instrumentDec + correctionDec;
+        // get the deltas
+        dHa = observedHa - newHa;
+        dDec = observedDec - newDec;
+        //            LOGF_DEBUG("observedToInstrument %i: observed %f, %f, new %f, %f, delta %f, %f", num,
+        //                       observedHa.Degrees(), observedDec.Degrees(),
+        //                       newHa.Degrees(), newDec.Degrees(), dHa.Degrees(), dDec.Degrees());
+        if (Angle(fabs(dHa.Degrees())) < minDelta && Angle(fabs(dDec.Degrees())) < minDelta)
+        {
+            return;
+        }
+        // apply the delta
+        *instrumentHa += dHa;
+        *instrumentDec += dDec;
+        num++;
     }
     LOGF_DEBUG("mountToObserved iterations %i, delta %f, %f", num, dHa.Degrees(), dDec.Degrees());
 #endif
@@ -416,7 +418,7 @@ void Alignment::observedToInstrument(Angle observedHa, Angle observedDec, Angle 
 
 // corrections based on the instrument position, add to instrument to get observed
 // see Patrick Wallace's white paper for details
-void Alignment::correction(Angle instrumentHa, Angle instrumentDec, Angle * correctionHa, Angle * correctionDec)
+void Alignment::correction(Angle instrumentHa, Angle instrumentDec, Angle *correctionHa, Angle *correctionDec)
 {
     // apply Ha and Dec zero offsets
     *correctionHa = IH;
@@ -427,12 +429,16 @@ void Alignment::correction(Angle instrumentHa, Angle instrumentDec, Angle * corr
     static const double maxTan = 100.0;
 
     double cosDec = std::cos(instrumentDec.radians());
-    if (cosDec >= 0 && cosDec < minCos) cosDec = minCos;
-    else if (cosDec <= 0 && cosDec > -minCos) cosDec = -minCos;
+    if (cosDec >= 0 && cosDec < minCos)
+        cosDec = minCos;
+    else if (cosDec <= 0 && cosDec > -minCos)
+        cosDec = -minCos;
 
     double tanDec = std::tan(instrumentDec.radians());
-    if (tanDec > maxTan) tanDec = maxTan;
-    if (tanDec < -maxTan) tanDec = -maxTan;
+    if (tanDec > maxTan)
+        tanDec = maxTan;
+    if (tanDec < -maxTan)
+        tanDec = -maxTan;
 
     double cosHa = std::cos(instrumentHa.radians());
     double sinHa = std::sin(instrumentHa.radians());

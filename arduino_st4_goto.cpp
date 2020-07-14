@@ -31,12 +31,12 @@
 // We declare an auto pointer to ArduinoST4GoTo.
 static std::unique_ptr<ArduinoST4GoTo> scope(new ArduinoST4GoTo());
 
-#define RA_AXIS     0
-#define DEC_AXIS    1
+#define RA_AXIS 0
+#define DEC_AXIS 1
 #define GUIDE_NORTH 0
 #define GUIDE_SOUTH 1
-#define GUIDE_WEST  0
-#define GUIDE_EAST  1
+#define GUIDE_WEST 0
+#define GUIDE_EAST 1
 
 void ISPoll(void *p);
 
@@ -83,8 +83,8 @@ ArduinoST4GoTo::ArduinoST4GoTo()
     DBG_SCOPE = static_cast<uint32_t>(INDI::Logger::getInstance().addDebugLevel("Scope Verbose", "SCOPE"));
 
     SetTelescopeCapability(TELESCOPE_CAN_PARK | TELESCOPE_CAN_SYNC | TELESCOPE_CAN_GOTO | TELESCOPE_CAN_ABORT |
-                           TELESCOPE_HAS_TIME | TELESCOPE_HAS_LOCATION | TELESCOPE_HAS_TRACK_MODE | TELESCOPE_CAN_CONTROL_TRACK |
-                           TELESCOPE_HAS_TRACK_RATE,
+                               TELESCOPE_HAS_TIME | TELESCOPE_HAS_LOCATION | TELESCOPE_HAS_TRACK_MODE | TELESCOPE_CAN_CONTROL_TRACK |
+                               TELESCOPE_HAS_TRACK_RATE,
                            4);
     setTelescopeConnection(CONNECTION_SERIAL);
     setVersion(ARDST4GOTO_VERSION_MAJOR, ARDST4GOTO_VERSION_MINOR);
@@ -114,12 +114,12 @@ bool ArduinoST4GoTo::initProperties()
     IUFillSwitch(&mountTypeS[Alignment::EQ_FORK], "EQ_FORK", "Fork (Eq)", ISS_OFF);
     IUFillSwitch(&mountTypeS[Alignment::EQ_GEM], "EQ_GEM", "GEM", ISS_ON);
     IUFillSwitchVector(&mountTypeSP, mountTypeS, 3, getDeviceName(), "MOUNT_TYPE", "Mount Type",
-                       "Simulation", IP_WO, ISR_1OFMANY, 60, IPS_IDLE );
+                       "Simulation", IP_WO, ISR_1OFMANY, 60, IPS_IDLE);
 
     IUFillSwitch(&simPierSideS[0], "PS_OFF", "Off", ISS_OFF);
     IUFillSwitch(&simPierSideS[1], "PS_ON", "On", ISS_ON);
     IUFillSwitchVector(&simPierSideSP, simPierSideS, 2, getDeviceName(), "SIM_PIER_SIDE", "Sim Pier Side",
-                       "Simulation", IP_WO, ISR_1OFMANY, 60, IPS_IDLE );
+                       "Simulation", IP_WO, ISR_1OFMANY, 60, IPS_IDLE);
 
     IUFillNumber(&mountModelN[0], "MM_IH", "Ha Zero (IH)", "%g", -5, 5, 0.01, 0);
     IUFillNumber(&mountModelN[1], "MM_ID", "Dec Zero (ID)", "%g", -5, 5, 0.01, 0);
@@ -227,17 +227,16 @@ bool ArduinoST4GoTo::updateProperties()
 
             if (isParked())
             {
-	        // at this point there is a valid ParkData.xml available
-	        double longitude, latitude;
-	        IUGetConfigNumber(getDeviceName(), "GEOGRAPHIC_COORD", "LONG", &longitude);
-	        IUGetConfigNumber(getDeviceName(), "GEOGRAPHIC_COORD", "LAT", &latitude);
-	        alignment.latitude = Angle(latitude);
-		alignment.longitude = Angle(longitude);
+                // at this point there is a valid ParkData.xml available
+                double longitude, latitude;
+                IUGetConfigNumber(getDeviceName(), "GEOGRAPHIC_COORD", "LONG", &longitude);
+                IUGetConfigNumber(getDeviceName(), "GEOGRAPHIC_COORD", "LAT", &latitude);
+                alignment.latitude = Angle(latitude);
+                alignment.longitude = Angle(longitude);
 
-	        currentRA = (alignment.lst() - Angle(ParkPositionN[AXIS_RA].value, Angle::ANGLE_UNITS::HOURS)).Hours();
+                currentRA = (alignment.lst() - Angle(ParkPositionN[AXIS_RA].value, Angle::ANGLE_UNITS::HOURS)).Hours();
                 currentDEC = ParkPositionN[AXIS_DE].value;
                 Sync(currentRA, currentDEC);
-
             }
             // If loading parking data is successful, we just set the default parking values.
             SetAxis1ParkDefault(-6.);
@@ -310,32 +309,32 @@ bool ArduinoST4GoTo::ReadScopeStatus()
     bool slewing = axisPrimary.isSlewing || axisSecondary.isSlewing;
     switch (TrackState)
     {
-        case SCOPE_PARKING:
-            if (!slewing)
-            {
-                SetParked(true);
-                EqNP.s = IPS_IDLE;
-                LOG_INFO("Telescope slew is complete. Parked");
-            }
-            break;
-        case SCOPE_SLEWING:
-            if (!slewing)
-            {
-                // It seems to be required that tracking is enabled when a slew finishes but is it correct?
-                // if the mount was not tracking before the slew should it remain not tracking?
-                TrackState = SCOPE_TRACKING;
-                SetTrackEnabled(true);
-                EqNP.s = IPS_IDLE;
-                LOG_INFO("Telescope slew is complete. Tracking...");
+    case SCOPE_PARKING:
+        if (!slewing)
+        {
+            SetParked(true);
+            EqNP.s = IPS_IDLE;
+            LOG_INFO("Telescope slew is complete. Parked");
+        }
+        break;
+    case SCOPE_SLEWING:
+        if (!slewing)
+        {
+            // It seems to be required that tracking is enabled when a slew finishes but is it correct?
+            // if the mount was not tracking before the slew should it remain not tracking?
+            TrackState = SCOPE_TRACKING;
+            SetTrackEnabled(true);
+            EqNP.s = IPS_IDLE;
+            LOG_INFO("Telescope slew is complete. Tracking...");
 
-                // check the slew accuracy
-                auto dRa = targetRA - currentRA;
-                auto dDec = targetDEC - currentDEC;
-                LOGF_DEBUG("slew accuracy %f, %f", dRa * 15 * 3600, dDec * 3600);
-            }
-            break;
-        default:
-            break;
+            // check the slew accuracy
+            auto dRa = targetRA - currentRA;
+            auto dDec = targetDEC - currentDEC;
+            LOGF_DEBUG("slew accuracy %f, %f", dRa * 15 * 3600, dDec * 3600);
+        }
+        break;
+    default:
+        break;
     }
 
     if (guidingEW && !axisPrimary.IsGuiding())
@@ -359,7 +358,7 @@ bool ArduinoST4GoTo::ReadScopeStatus()
     double axisDE = axisSecondary.position.Degrees();
     // No need to spam log until we have some actual changes.
     if (std::fabs(mountAxisN[AXIS_RA].value - axisRA) > 0.0001 ||
-            std::fabs(mountAxisN[AXIS_DE].value - axisDE) > 0.0001)
+        std::fabs(mountAxisN[AXIS_DE].value - axisDE) > 0.0001)
     {
         mountAxisN[AXIS_RA].value = axisRA;
         mountAxisN[AXIS_DE].value = axisDE;
@@ -412,7 +411,7 @@ bool ArduinoST4GoTo::Sync(double ra, double dec)
 
 bool ArduinoST4GoTo::Park()
 {
-    double ra = (alignment.lst() - Angle(GetAxis1Park() * 15.)).Degrees()/15.;
+    double ra = (alignment.lst() - Angle(GetAxis1Park() * 15.)).Degrees() / 15.;
     StartSlew(ra, GetAxis2Park(), SCOPE_PARKING);
     return true;
 }
@@ -426,24 +425,24 @@ void ArduinoST4GoTo::StartSlew(double ra, double dec, TelescopeStatus status)
     axisPrimary.StartSlew(primary);
     axisSecondary.StartSlew(secondary);
 
-    targetRA  = ra;
+    targetRA = ra;
     targetDEC = dec;
     char RAStr[64], DecStr[64];
 
     fs_sexa(RAStr, targetRA, 2, 3600);
     fs_sexa(DecStr, targetDEC, 2, 3600);
 
-    const char * statusStr;
+    const char *statusStr;
     switch (status)
     {
-        case SCOPE_PARKING:
-            statusStr = "Parking";
-            break;
-        case SCOPE_SLEWING:
-            statusStr = "Slewing";
-            break;
-        default:
-            statusStr = "unknown";
+    case SCOPE_PARKING:
+        statusStr = "Parking";
+        break;
+    case SCOPE_SLEWING:
+        statusStr = "Slewing";
+        break;
+    default:
+        statusStr = "unknown";
     }
     TrackState = status;
 
@@ -638,7 +637,7 @@ IPState ArduinoST4GoTo::GuideNorth(uint32_t ms)
         return IPS_ALERT;
 
     guideDirection = ARD_N;
-    GuideNSTID      = IEAddTimer(static_cast<int>(ms), guideTimeoutHelperN, this);
+    GuideNSTID = IEAddTimer(static_cast<int>(ms), guideTimeoutHelperN, this);
     return IPS_BUSY;
 }
 
@@ -660,7 +659,7 @@ IPState ArduinoST4GoTo::GuideSouth(uint32_t ms)
         return IPS_ALERT;
 
     guideDirection = ARD_S;
-    GuideNSTID      = IEAddTimer(static_cast<int>(ms), guideTimeoutHelperS, this);
+    GuideNSTID = IEAddTimer(static_cast<int>(ms), guideTimeoutHelperS, this);
     return IPS_BUSY;
 }
 
@@ -682,7 +681,7 @@ IPState ArduinoST4GoTo::GuideEast(uint32_t ms)
         return IPS_ALERT;
 
     guideDirection = ARD_E;
-    GuideWETID      = IEAddTimer(static_cast<int>(ms), guideTimeoutHelperE, this);
+    GuideWETID = IEAddTimer(static_cast<int>(ms), guideTimeoutHelperE, this);
     return IPS_BUSY;
 }
 
@@ -704,10 +703,9 @@ IPState ArduinoST4GoTo::GuideWest(uint32_t ms)
         return IPS_ALERT;
 
     guideDirection = ARD_E;
-    GuideWETID      = IEAddTimer(static_cast<int>(ms), guideTimeoutHelperE, this);
+    GuideWETID = IEAddTimer(static_cast<int>(ms), guideTimeoutHelperE, this);
     return IPS_BUSY;
 }
-
 
 //GUIDE The timer helper functions.
 void ArduinoST4GoTo::guideTimeoutHelperN(void *p)
@@ -730,7 +728,7 @@ void ArduinoST4GoTo::guideTimeoutHelperE(void *p)
 bool ArduinoST4GoTo::SetCurrentPark()
 {
 
-    double ha  = (alignment.lst() - Angle(currentRA, Angle::ANGLE_UNITS::HOURS)).Hours();
+    double ha = (alignment.lst() - Angle(currentRA, Angle::ANGLE_UNITS::HOURS)).Hours();
     SetAxis1Park(ha);
     SetAxis2Park(currentDEC);
 
@@ -751,21 +749,21 @@ bool ArduinoST4GoTo::SetTrackMode(uint8_t mode)
 {
     switch (static_cast<TelescopeTrackMode>(mode))
     {
-        case TRACK_SIDEREAL:
-            axisPrimary.TrackRate(Axis::SIDEREAL);
-            axisSecondary.TrackRate(Axis::OFF);
-            return true;
-        case TRACK_SOLAR:
-            axisPrimary.TrackRate(Axis::SOLAR);
-            axisSecondary.TrackRate(Axis::OFF);
-            return true;
-        case TRACK_LUNAR:
-            axisPrimary.TrackRate(Axis::LUNAR);
-            axisSecondary.TrackRate(Axis::OFF);
-            return true;
-        case TRACK_CUSTOM:
-            SetTrackRate(TrackRateN[AXIS_RA].value, TrackRateN[AXIS_DE].value);
-            return true;
+    case TRACK_SIDEREAL:
+        axisPrimary.TrackRate(Axis::SIDEREAL);
+        axisSecondary.TrackRate(Axis::OFF);
+        return true;
+    case TRACK_SOLAR:
+        axisPrimary.TrackRate(Axis::SOLAR);
+        axisSecondary.TrackRate(Axis::OFF);
+        return true;
+    case TRACK_LUNAR:
+        axisPrimary.TrackRate(Axis::LUNAR);
+        axisSecondary.TrackRate(Axis::OFF);
+        return true;
+    case TRACK_CUSTOM:
+        SetTrackRate(TrackRateN[AXIS_RA].value, TrackRateN[AXIS_DE].value);
+        return true;
     }
     return false;
 }
@@ -829,7 +827,7 @@ bool ArduinoST4GoTo::updateMountAndPierSide()
     int mountType = 2;
     int pierSide = 1;
 #endif
-    if ( mountType == Alignment::MOUNT_TYPE::ALTAZ)
+    if (mountType == Alignment::MOUNT_TYPE::ALTAZ)
     {
         LOG_INFO("AltAz mount type not implemented yet");
         return false;
@@ -868,7 +866,7 @@ void ArduinoST4GoTo::guideTimeout(ARDUINO_DIRECTION direction)
             LOG_ERROR("Failed to stop DEC axis.");
         }
 
-        GuideNSTID            = 0;
+        GuideNSTID = 0;
         GuideNSNP.np[0].value = 0;
         GuideNSNP.np[1].value = 0;
         IDSetNumber(&GuideNSNP, nullptr);
@@ -889,21 +887,21 @@ void ArduinoST4GoTo::guideTimeout(ARDUINO_DIRECTION direction)
 
         GuideWENP.np[0].value = 0;
         GuideWENP.np[1].value = 0;
-        GuideWETID            = 0;
+        GuideWETID = 0;
         IDSetNumber(&GuideWENP, nullptr);
     }
 }
 
 bool ArduinoST4GoTo::sendCommand(const char *cmd)
 {
-    int nbytes_read=0, nbytes_written=0, tty_rc = 0;
+    int nbytes_read = 0, nbytes_written = 0, tty_rc = 0;
     char res[8] = {0};
     LOGF_DEBUG("CMD <%s>", cmd);
 
     if (!isSimulation())
     {
         tcflush(PortFD, TCIOFLUSH);
-        if ( (tty_rc = tty_write_string(PortFD, cmd, &nbytes_written)) != TTY_OK)
+        if ((tty_rc = tty_write_string(PortFD, cmd, &nbytes_written)) != TTY_OK)
         {
             char errorMessage[MAXRBUF];
             tty_error_msg(tty_rc, errorMessage, MAXRBUF);
@@ -919,7 +917,7 @@ bool ArduinoST4GoTo::sendCommand(const char *cmd)
     }
     else
     {
-        if ( (tty_rc = tty_read_section(PortFD, res, '#', ARDUINO_TIMEOUT, &nbytes_read)) != TTY_OK)
+        if ((tty_rc = tty_read_section(PortFD, res, '#', ARDUINO_TIMEOUT, &nbytes_read)) != TTY_OK)
         {
             char errorMessage[MAXRBUF];
             tty_error_msg(tty_rc, errorMessage, MAXRBUF);

@@ -50,7 +50,7 @@ static char device_str[64] = "Arduino ST4 GoTo";
 class Angle
 {
 private:
-    double angle;     // position in degrees, range -180 to 0 to 180
+    double angle; // position in degrees, range -180 to 0 to 180
 
     ///
     /// \brief range
@@ -59,15 +59,22 @@ private:
     ///
     static double range(double deg)
     {
-        while (deg > 180.0) deg -= 360.0;
-        while (deg <= -180.0) deg += 360.0;
+        while (deg > 180.0)
+            deg -= 360.0;
+        while (deg <= -180.0)
+            deg += 360.0;
         return deg;
     }
 
     static double hrstoDeg(double hrs) { return range(hrs * 15.0); }
 
 public:
-    enum ANGLE_UNITS {DEGREES, HOURS, RADIANS};
+    enum ANGLE_UNITS
+    {
+        DEGREES,
+        HOURS,
+        RADIANS
+    };
 
     Angle() { angle = 0; }
 
@@ -81,7 +88,7 @@ public:
     /// \brief Degrees
     /// \return angle in degrees, range -180 to 0 to +180
     ///
-    double Degrees() {return angle; }
+    double Degrees() { return angle; }
 
     ///
     /// \brief Degrees360
@@ -107,7 +114,7 @@ public:
     /// \brief HoursHa
     /// \return angle in hours, range -12 to +12
     ///
-    double HoursHa() {return angle / 15.0; }
+    double HoursHa() { return angle / 15.0; }
 
     ///
     /// \brief radians
@@ -147,51 +154,51 @@ public:
         return range(this->angle - a.angle);
     }
 
-    Angle operator - ()
+    Angle operator-()
     {
         return Angle(-this->angle);
     }
 
-    Angle& operator += (const Angle& a)
+    Angle &operator+=(const Angle &a)
     {
         angle = range(angle + a.angle);
         return *this;
     }
 
-    Angle& operator += (const double d)
+    Angle &operator+=(const double d)
     {
         angle = range(angle + d);
         return *this;
     }
 
-    Angle& operator-= (const Angle& a)
+    Angle &operator-=(const Angle &a)
     {
         angle = range(angle - a.angle);
         return *this;
     }
 
-    Angle& operator-= (const double d)
+    Angle &operator-=(const double d)
     {
         angle = range(angle - d);
         return *this;
     }
 
-    Angle operator+ (const Angle& a)
+    Angle operator+(const Angle &a)
     {
         return Angle(this->angle + a.angle);
     }
 
-    Angle operator+ (const double& d)
+    Angle operator+(const double &d)
     {
         return Angle(this->angle + d);
     }
 
-    Angle operator- (const Angle& rhs)
+    Angle operator-(const Angle &rhs)
     {
         return Angle(this->angle - rhs.angle);
     }
 
-    Angle operator- (const double& rhs)
+    Angle operator-(const double &rhs)
     {
         return Angle(this->angle - rhs);
     }
@@ -203,29 +210,29 @@ public:
     /// \param duration as a double
     /// \return Angle
     ///
-    Angle operator * (const double duration)
+    Angle operator*(const double duration)
     {
         return Angle(this->angle * duration);
     }
 
-    bool operator== (const Angle& a);
+    bool operator==(const Angle &a);
 
-    bool operator!= (const Angle& a);
+    bool operator!=(const Angle &a);
 
-    bool operator > (const Angle& a)
+    bool operator>(const Angle &a)
     {
         return difference(a) > 0;
     }
 
-    bool operator < (const Angle& a)
+    bool operator<(const Angle &a)
     {
         return difference(a) < 0;
     }
-    bool operator >= (const Angle& a)
+    bool operator>=(const Angle &a)
     {
         return difference(a) >= 0;
     }
-    bool operator <= (const Angle& a)
+    bool operator<=(const Angle &a)
     {
         return difference(a) <= 0;
     }
@@ -246,21 +253,32 @@ public:
     ///
     /// \brief The AXIS_TRACK_RATE enum defines the common track rates
     ///
-    enum AXIS_TRACK_RATE { OFF, SIDEREAL, SOLAR, LUNAR };
+    enum AXIS_TRACK_RATE
+    {
+        OFF,
+        SIDEREAL,
+        SOLAR,
+        LUNAR
+    };
 
-    Axis(const char * name) { axisName = name; }
+    Axis(const char *name) { axisName = name; }
 
-    const char * axisName;
+    const char *axisName;
 
     // sets position and target so does not cause a slew.
     void setDegrees(double degrees);
     void setHours(double hours);
 
-    Angle position;         // current axis position
+    Angle position; // current axis position
 
     void StartSlew(Angle angle);
 
-    void Abort() {  target = position; mcRate = 0; guideDuration = 0; }
+    void Abort()
+    {
+        target = position;
+        mcRate = 0;
+        guideDuration = 0;
+    }
 
     bool isSlewing;
 
@@ -296,23 +314,26 @@ public:
 
     bool IsGuiding() { return guideDuration > 0; }
 
-    int mcRate;             // int -4 to 4 sets move rate, zero is stopped
+    int mcRate; // int -4 to 4 sets move rate, zero is stopped
 
-    void update();         // called about once a second to update the position and mode
+    void update(); // called about once a second to update the position and mode
 
     // needed for debug MACROS
     const char *getDeviceName() { return device_str; }
 
 private:
-    Angle target;           // target axis position
+    Angle target; // target axis position
 
-    struct timeval lastTime { 0, 0 };
+    struct timeval lastTime
+    {
+        0, 0
+    };
 
-    bool tracking;      // this allows the tracking state and rate to be set independently
+    bool tracking; // this allows the tracking state and rate to be set independently
 
-    AXIS_TRACK_RATE trackingRate { AXIS_TRACK_RATE::OFF };
+    AXIS_TRACK_RATE trackingRate{AXIS_TRACK_RATE::OFF};
 
-    Angle rotateCentre { 90.0 };
+    Angle rotateCentre{90.0};
 
     double guideDuration;
     Angle guideRateDegSec;
@@ -320,17 +341,16 @@ private:
     // rates are angles in degrees per second derived from the values in indicom.h
     // which are in arcsec per second.
 
-    const Angle solarRate { TRACKRATE_SOLAR / 3600.0 };
-    const Angle siderealRate { TRACKRATE_SIDEREAL / 3600.0 };
-    const Angle lunarRate { TRACKRATE_LUNAR / 3600.0 };
+    const Angle solarRate{TRACKRATE_SOLAR / 3600.0};
+    const Angle siderealRate{TRACKRATE_SIDEREAL / 3600.0};
+    const Angle lunarRate{TRACKRATE_LUNAR / 3600.0};
 
-    Angle mcRates[5]
-    {
+    Angle mcRates[5]{
         0,
-        siderealRate,   // guide rate
-        (TRACKRATE_SIDEREAL / 3600.0) * 2.0,            // fine rate
-        (TRACKRATE_SIDEREAL / 3600.0) * 4.0,            // center rate
-        (TRACKRATE_SIDEREAL / 3600.0) * 8.0,            // goto rate
+        siderealRate,                        // guide rate
+        (TRACKRATE_SIDEREAL / 3600.0) * 2.0, // fine rate
+        (TRACKRATE_SIDEREAL / 3600.0) * 4.0, // center rate
+        (TRACKRATE_SIDEREAL / 3600.0) * 8.0, // goto rate
     };
 };
 
@@ -364,9 +384,14 @@ private:
 class Alignment
 {
 public:
-    Alignment(){}
+    Alignment() {}
 
-    enum MOUNT_TYPE { ALTAZ, EQ_FORK, EQ_GEM };
+    enum MOUNT_TYPE
+    {
+        ALTAZ,
+        EQ_FORK,
+        EQ_GEM
+    };
 
     Angle latitude = 0;
     Angle longitude = 0;
@@ -380,11 +405,9 @@ public:
     /// \param apparentRa
     /// \param apparentDec
     ///
-    void mountToApparentRaDec(Angle primary, Angle secondary, Angle * apparentRa, Angle* apparentDec);
-
+    void mountToApparentRaDec(Angle primary, Angle secondary, Angle *apparentRa, Angle *apparentDec);
 
     void apparentRaDecToMount(Angle apparentRa, Angle apparentDec, Angle *primary, Angle *secondary);
-
 
     ///
     /// \brief setCorrections set the values of the six corrections
@@ -400,19 +423,18 @@ public:
     void setFlipHourAngle(double deg) { flipHourAngle = deg; }
 
     // needed for debug MACROS
-    const char *getDeviceName() { return device_str;}
+    const char *getDeviceName() { return device_str; }
 
-    double ih() {return IH;}
-    double id() {return ID;}
-    double np() {return NP;}
-    double ch() {return CH;}
-    double ma() {return MA;}
-    double me() {return ME;}
+    double ih() { return IH; }
+    double id() { return ID; }
+    double np() { return NP; }
+    double ch() { return CH; }
+    double ma() { return MA; }
+    double me() { return ME; }
 
     void instrumentToObserved(Angle instrumentHa, Angle instrumentDec, Angle *observedHa, Angle *observedDec);
 
-    void observedToInstrument(Angle observedHa, Angle observedDec, Angle * instrumentHa, Angle * instrumentDec);
-
+    void observedToInstrument(Angle observedHa, Angle observedDec, Angle *instrumentHa, Angle *instrumentDec);
 
     ///
     /// \brief mountToApparentHaDec: convert mount position to apparent Ha, Dec
@@ -432,12 +454,8 @@ public:
     ///
     void apparentHaDecToMount(Angle apparentHa, Angle apparentDec, Angle *primary, Angle *secondary);
 
-    Angle lst();            // returns the current LST as an angle
+    Angle lst(); // returns the current LST as an angle
 private:
-
-
-
-
     Angle flipHourAngle = 0;
 
     ///
@@ -486,7 +504,6 @@ private:
     /// \brief ME polar align error in Elevation
     ///
     double ME = 0;
-
 
     // corrections done using direction cosines and rotations after Taki
     //apparentHaDecToMount(Vector HaDec, Vector * mount);
@@ -565,7 +582,7 @@ public:
     double n() { return N; }
 
 protected:
-    double L;   // in the Ha 0 direction, pointing at Ha 0, Dec 0, X direction
-    double M;   // in the Ha 6 direction, pointing at Ha 6h, Dec 0, Y direction
-    double N;   // toward the pole, Dec 0, Z direction
+    double L; // in the Ha 0 direction, pointing at Ha 0, Dec 0, X direction
+    double M; // in the Ha 6 direction, pointing at Ha 6h, Dec 0, Y direction
+    double N; // toward the pole, Dec 0, Z direction
 };
