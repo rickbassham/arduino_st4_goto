@@ -24,38 +24,44 @@ const int pinLED = 13;
  * An axis has a pin per direction.
  * Both pins cannot be up at the same time.
  */
-class Axis {
+class Axis
+{
 private:
   int plusPin;
   int minusPin;
+
 public:
-  Axis(int plusPin, int minusPin) : 
-  plusPin(plusPin), minusPin(minusPin) {
+  Axis(int plusPin, int minusPin) : plusPin(plusPin), minusPin(minusPin)
+  {
   }
-  void setupPins(){
+  void setupPins()
+  {
     pinMode(this->plusPin, OUTPUT);
     pinMode(this->minusPin, OUTPUT);
   }
-  void plus(){
+  void plus()
+  {
     digitalWrite(this->minusPin, LOW);
     digitalWrite(this->plusPin, HIGH);
   }
-  void minus(){
+  void minus()
+  {
     digitalWrite(this->plusPin, LOW);
     digitalWrite(this->minusPin, HIGH);
   }
-  void reset(){
+  void reset()
+  {
     digitalWrite(this->minusPin, LOW);
     digitalWrite(this->plusPin, LOW);
   }
 };
 
 class Axis rightAscension(
-2,//RA+ pin
-5);//RA- pin
+    2,  //RA+ pin
+    5); //RA- pin
 class Axis declination(
-3,//DEC+ pin
-4);//DEC- pin
+    3,  //DEC+ pin
+    4); //DEC- pin
 
 void setup()
 {
@@ -65,54 +71,74 @@ void setup()
   //57.6k, 8 data bits, no parity, one stop bit.
   Serial.begin(57600, SERIAL_8N1);
   //Wait for serial port to connect. Needed for Leonardo only
-  while (!Serial);
-  Serial.println("INITIALIZED#");
+  while (!Serial)
+    ;
+
+  for (int i = 0; i < 5; i++)
+  {
+    digitalWrite(pinLED, HIGH);
+    delay(100);
+    digitalWrite(pinLED, LOW);
+    delay(100);
+  }
 }
 
-void resetPins(){
+void resetPins()
+{
   rightAscension.reset();
   declination.reset();
 }
 
 void loop()
 {
-  if (Serial.available() > 0) {
+  if (Serial.available() > 0)
+  {
     //Received something
     String opcode = Serial.readStringUntil('#');
-    boolean validOpcode=true;
+    boolean validOpcode = true;
     //Parse opcode
-    if(opcode=="CONNECT"){
+    if (opcode == "CONNECT")
+    {
       digitalWrite(pinLED, HIGH);
       resetPins();
     }
-    else if (opcode=="DISCONNECT"){
+    else if (opcode == "DISCONNECT")
+    {
       digitalWrite(pinLED, LOW);
       resetPins();
     }
-    else if(opcode=="RA0"){
+    else if (opcode == "RA0")
+    {
       rightAscension.reset();
     }
-    else if(opcode=="RA+"){
+    else if (opcode == "RA+")
+    {
       rightAscension.plus();
     }
-    else if(opcode=="RA-"){
+    else if (opcode == "RA-")
+    {
       rightAscension.minus();
     }
-    else if(opcode=="DEC0"){
+    else if (opcode == "DEC0")
+    {
       declination.reset();
     }
-    else if(opcode=="DEC+"){
+    else if (opcode == "DEC+")
+    {
       declination.plus();
     }
-    else if(opcode=="DEC-"){
+    else if (opcode == "DEC-")
+    {
       declination.minus();
     }
-    else{
-      validOpcode=false;
+    else
+    {
+      validOpcode = false;
     }
-    if(validOpcode){
+    if (validOpcode)
+    {
       //Acknowledge valid command
       Serial.println("OK#");
     }
-  } 
+  }
 }
